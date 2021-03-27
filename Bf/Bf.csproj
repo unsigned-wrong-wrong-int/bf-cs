@@ -9,7 +9,7 @@
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <AssemblyAttribute
       Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>BfTests</_Parameter1>
+      <_Parameter1>Bf.Tests</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
 </Project>
