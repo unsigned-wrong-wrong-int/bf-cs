@@ -18,7 +18,9 @@ namespace Bf
 
    ref struct Scanner
    {
-      readonly ReadOnlySpan<byte>.Enumerator inner;
+      ReadOnlySpan<byte>.Enumerator inner;
+
+      Token current;
 
       int line;
       int column;
@@ -29,6 +31,7 @@ namespace Bf
       public Scanner(ReadOnlySpan<byte> source)
       {
          inner = source.GetEnumerator();
+         current = default;
          line = column = 1;
          loopStarts = new();
          error = false;
@@ -45,37 +48,31 @@ namespace Bf
             loopStarts.Clear();
             return false;
          }
+         current = (Token)inner.Current;
+         switch (current)
+         {
+            case Token.BeginLoop:
+               loopStarts.Push((line, column));
+               goto default;
+            case Token.EndLoop:
+               if (!loopStarts.TryPop(out _))
+               {
+                  Error(']', line, column);
+                  current = Token.InvalidBracket;
+               }
+               goto default;
+            default:
+               ++column;
+               break;
+            case (Token)'\n':
+               ++line;
+               column = 1;
+               break;
+         }
          return true;
       }
 
-      public Token Current
-      {
-         get
-         {
-            var value = (Token)inner.Current;
-            switch (value)
-            {
-               case Token.BeginLoop:
-                  loopStarts.Push((line, column));
-                  goto default;
-               case Token.EndLoop:
-                  if (!loopStarts.TryPop(out _))
-                  {
-                     Error(']', line, column);
-                     value = Token.InvalidBracket;
-                  }
-                  goto default;
-               default:
-                  ++column;
-                  break;
-               case (Token)'\n':
-                  ++line;
-                  column = 1;
-                  break;
-            }
-            return value;
-         }
-      }
+      public Token Current => current;
 
       public bool IsValid => !error;
 
