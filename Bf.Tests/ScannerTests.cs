@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using Xunit;
 
 namespace Bf.Tests
@@ -106,7 +107,7 @@ namespace Bf.Tests
       static void AssertTokens(ReadOnlySpan<Token> expected, bool isValid,
          string input)
       {
-         var bytes = System.Text.Encoding.UTF8.GetBytes(input);
+         var bytes = Encoding.UTF8.GetBytes(input);
          var scanner = new Scanner(bytes);
 
          foreach (var token in expected)

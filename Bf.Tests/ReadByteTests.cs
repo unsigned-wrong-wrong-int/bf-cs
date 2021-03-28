@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using Xunit;
 
 namespace Bf.Tests
@@ -91,8 +92,7 @@ namespace Bf.Tests
          Console.SetIn(new StringReader(input + "\n"));
          var runtime = new Runtime();
 
-         ReadOnlySpan<byte> expected =
-            System.Text.Encoding.UTF8.GetBytes(expectedText);
+         ReadOnlySpan<byte> expected = Encoding.UTF8.GetBytes(expectedText);
 
          var result = runtime.Read();
          foreach (var b in expected)
