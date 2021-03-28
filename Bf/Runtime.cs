@@ -7,6 +7,8 @@ namespace Bf
 {
    class Runtime
    {
+      public int Cells { get; set; } = 0x8000;
+
       public byte EOF { get; set; } = 255;
 
       public string NewLine { get; set; } = "\n";
