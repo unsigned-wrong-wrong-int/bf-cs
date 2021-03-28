@@ -43,6 +43,11 @@ namespace Bf
 
       public void Write(byte value)
       {
+         // 0xxxxxxx -> 0x ; ASCII char
+         // 10xxxxxx -> 10 ; continuation byte
+         // 110xxxxx -> 11 ; first byte
+         // 1110xxxx -> 11 ; first byte
+         // 11110xxx -> 11 ; first byte
          switch (value >> 6)
          {
             case 0b10:
@@ -58,6 +63,7 @@ namespace Bf
                outputCount = 1;
                break;
             default:
+               Flush();
                Console.Write((char)value);
                break;
          }
@@ -68,6 +74,7 @@ namespace Bf
          if (outputCount > 0)
          {
             Console.Write(utf8.GetString(output, 0, outputCount));
+            outputCount = 0;
          }
       }
 
