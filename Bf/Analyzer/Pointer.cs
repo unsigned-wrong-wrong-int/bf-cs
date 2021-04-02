@@ -24,6 +24,7 @@ namespace Bf.Analyzer
             if (!cells.TryGetValue(pos, out var cell))
             {
                cell = new();
+               cells.Add(pos, cell);
             }
             return cell;
          }
