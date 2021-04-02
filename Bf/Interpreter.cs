@@ -2,7 +2,7 @@ using System;
 
 namespace Bf
 {
-   class Analyzer
+   class Interpreter
    {
       public bool Parse(ReadOnlySpan<byte> source)
       {
