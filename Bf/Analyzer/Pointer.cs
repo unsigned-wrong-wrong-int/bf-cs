@@ -8,13 +8,17 @@ namespace Bf.Analyzer
       int maxOffset;
       int minOffset;
       int offset;
+
       readonly Dictionary<int /* offset */, Cell> cells;
+
+      readonly List<Command> commands;
 
       public Pointer(int pos)
       {
          basePos = pos;
          maxOffset = minOffset = offset = 0;
          cells = new();
+         commands = new();
       }
 
       public Cell this[int pos]
