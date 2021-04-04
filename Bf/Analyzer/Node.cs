@@ -33,6 +33,8 @@ namespace Bf.Analyzer
       //    *p = 0;
       // }
 
+      public Node? Previous { get; set; }
+
       public byte Value { get; set; } = 0;
 
       public bool Overwrite { get; set; } = false;

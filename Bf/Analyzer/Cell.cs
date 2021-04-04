@@ -1,49 +1,23 @@
-using System.Collections.Generic;
-
 namespace Bf.Analyzer
 {
    class Cell
    {
-      List<Node>? previous;
-
-      public Node Current { get; private set; }
+      readonly Node head;
+      Node current;
 
       public Cell()
       {
-         previous = null;
-         Current = new();
+         head = current = new();
       }
 
-      public void Add(byte value)
-      {
-         Current.Value += value;
-      }
+      public void Increment() => ++current.Value;
 
-      public void AddTerm(byte multipiler, Node node)
-      {
-         Current.AddTerm(new(multipiler, node));
-      }
+      public void Decrement() => --current.Value;
 
-      public Node Load(bool clear = false, byte shiftRight = 0)
-      {
-         var current = Current;
-         if (previous is null)
-         {
-            previous = new();
-         }
-         previous.Add(current);
-         Current = new()
-         {
-            Overwrite = clear,
-            ShiftRight = shiftRight,
-         };
-         return current;
-      }
+      public bool IsConst => current.Overwrite && current.Terms is null;
 
-      public bool IsConst => Current.Overwrite && Current.Terms is null;
+      public bool IsZero => IsConst && current.Value == 0;
 
-      public bool IsZero => IsConst && Current.Value == 0;
-
-      public bool IsNonZero => IsConst && Current.Value != 0;
+      public bool IsNonZero => IsConst && current.Value != 0;
    }
 }
