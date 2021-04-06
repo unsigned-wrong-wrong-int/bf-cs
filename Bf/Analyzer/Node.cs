@@ -38,13 +38,22 @@ namespace Bf.Analyzer
 
       public Node? Previous { get; set; }
 
-      public byte Value { get; set; } = 0;
+      public byte Value { get; set; }
 
-      public bool Overwrite { get; set; } = false;
+      public bool Overwrite { get; set; }
 
-      public byte ShiftRight { get; set; } = 0;
+      public byte ShiftRight { get; set; }
 
-      public List<Term>? Terms { get; set; } = null;
+      public List<Term>? Terms { get; private set; }
+
+      public Node(Node? prev, bool overwrite)
+      {
+         Previous = prev;
+         Value = 0;
+         Overwrite = overwrite;
+         ShiftRight = 0;
+         Terms = null;
+      }
 
       public void AddTerm(Term value)
       {
@@ -53,6 +62,31 @@ namespace Bf.Analyzer
             Terms = new();
          }
          Terms.Add(value);
+      }
+
+      public void SetZero()
+      {
+         Value = 0;
+         Overwrite = true;
+         Terms = null;
+      }
+
+      public void Prepend(Node prev)
+      {
+         Previous = prev.Previous;
+         if (!Overwrite)
+         {
+            Value += prev.Value;
+            Overwrite = prev.Overwrite;
+            if (prev.Terms is {} prevTerms)
+            {
+               if (Terms is {} terms)
+               {
+                  prevTerms.AddRange(terms);
+               }
+               Terms = prevTerms;
+            }
+         }
       }
 
       public Term DivideBy(byte value)
