@@ -60,8 +60,11 @@ namespace Bf.Analyzer
       {
          // [-]   { *p = 0; }
          _ = current.DivideBy(counter.Value);
-         current.SetZero();
-         if (current.ShiftRight != 0)
+         if (current.ShiftRight == 0)
+         {
+            current.SetZero();
+         }
+         else
          {
             // [--]
             // { assert((*p & 1) == 0, "infinite loop"); *p = 0; }
