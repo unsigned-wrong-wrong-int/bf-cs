@@ -14,11 +14,9 @@ namespace Bf.Analyzer
 
       public void Decrement() => --current.Value;
 
-      public bool IsConst => current.Overwrite && current.Terms is null;
+      public bool IsZero => current.IsConst && current.Value == 0;
 
-      public bool IsZero => IsConst && current.Value == 0;
-
-      public bool IsNonZero => IsConst && current.Value != 0;
+      public bool IsNonZero => current.IsConst && current.Value != 0;
 
       public LoopCounter? AsLoopCounter()
       {

@@ -55,6 +55,8 @@ namespace Bf.Analyzer
          Terms = null;
       }
 
+      public bool IsConst => !Overwrite && Terms is null;
+
       public void AddTerm(Term value)
       {
          if (Terms is null)
