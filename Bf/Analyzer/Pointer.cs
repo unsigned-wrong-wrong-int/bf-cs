@@ -4,7 +4,6 @@ namespace Bf.Analyzer
 {
    class Pointer
    {
-      int basePos;
       int maxOffset;
       int minOffset;
       int offset;
@@ -13,28 +12,23 @@ namespace Bf.Analyzer
 
       readonly List<Command> commands;
 
-      public Pointer(int pos)
+      public Pointer()
       {
-         basePos = pos;
          maxOffset = minOffset = offset = 0;
          cells = new();
          commands = new();
       }
 
-      public Cell this[int pos]
+      public Cell GetCell(int pos = 0)
       {
-         get
+         pos += offset;
+         if (!cells.TryGetValue(pos, out var cell))
          {
-            if (!cells.TryGetValue(pos, out var cell))
-            {
-               cell = new();
-               cells.Add(pos, cell);
-            }
-            return cell;
+            cell = new();
+            cells.Add(pos, cell);
          }
+         return cell;
       }
-
-      public Cell Cell => this[offset];
 
       public void MoveRight()
       {
