@@ -17,9 +17,6 @@ namespace Bf.Analyzer
          Multiplier = multipiler;
          Node = node;
       }
-
-      public Term MultiplyBy(byte value) =>
-         new((byte)(Multiplier * value), Node);
    }
 
    class Node
@@ -89,13 +86,6 @@ namespace Bf.Analyzer
                Terms = prevTerms;
             }
          }
-      }
-
-      public Term DivideBy(byte value)
-      {
-         var reciprocal = value.Reciprocal(out var shiftRight);
-         ShiftRight = shiftRight;
-         return new(reciprocal, this);
       }
    }
 }

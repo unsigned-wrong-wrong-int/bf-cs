@@ -56,12 +56,15 @@ namespace Bf.Analyzer
          current = next;
       }
 
-      public void Merge(LoopCounter counter)
+      public bool TryMerge(LoopCounter counter)
       {
-         // [-]   { *p = 0; }
-         _ = current.DivideBy(counter.Value);
+         if (LoopStep.Divide(current, counter.Value) is null)
+         {
+            return false;
+         }
          if (current.ShiftRight == 0)
          {
+            // [-]   { *p = 0; }
             current.SetZero();
          }
          else
@@ -70,20 +73,26 @@ namespace Bf.Analyzer
             // { assert((*p & 1) == 0, "infinite loop"); *p = 0; }
             current = new(current, overwrite: true);
          }
+         return true;
       }
 
-      public void Merge(LoopCounter counter, out Term step)
+      public bool TryMerge(LoopCounter counter, out LoopStep? step)
       {
-         step = current.DivideBy(counter.Value);
+         step = LoopStep.Divide(current, counter.Value);
+         if (step is null)
+         {
+            return false;
+         }
          current = new(current, overwrite: true);
+         return true;
       }
 
-      public void Merge(LoopLocal local, Term step)
+      public void Merge(LoopLocal local, LoopStep step)
       {
          var node = local.Node;
          if (local.IsNonZero)
          {
-            current.AddTerm(step.MultiplyBy(node.Value));
+            step.AddProduct(current, node.Value);
             node.Value = 0;
          }
          node.Prepend(current);
