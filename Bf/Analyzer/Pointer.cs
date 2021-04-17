@@ -4,19 +4,21 @@ namespace Bf.Analyzer
 {
    class Pointer
    {
+      Pointer? next;
+      readonly Context context;
+
       int maxOffset;
       int minOffset;
       int offset;
 
       readonly Dictionary<int /* offset */, Cell> cells;
 
-      readonly List<Command> commands;
-
-      public Pointer()
+      public Pointer(Context context)
       {
+         next = null;
+         this.context = context;
          maxOffset = minOffset = offset = 0;
          cells = new();
-         commands = new();
       }
 
       public Cell GetCell(int pos = 0)
