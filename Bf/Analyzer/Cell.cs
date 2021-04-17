@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Bf.Analyzer
 {
    class Cell
@@ -76,7 +78,8 @@ namespace Bf.Analyzer
          return true;
       }
 
-      public bool TryMerge(LoopCounter counter, out LoopStep? step)
+      public bool TryMerge(LoopCounter counter,
+         [NotNullWhen(true)] out LoopStep? step)
       {
          step = LoopStep.Divide(current, counter.Value);
          if (step is null)
