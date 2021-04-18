@@ -45,6 +45,14 @@ namespace Bf.Analyzer
       public Cell GetCell(int pos = 0)
       {
          pos += offset;
+         if (pos > maxOffset)
+         {
+            maxOffset = pos;
+         }
+         else if (pos < minOffset)
+         {
+            minOffset = pos;
+         }
          if (!cells.TryGetValue(pos, out var cell))
          {
             cell = new(isZero:
@@ -63,21 +71,9 @@ namespace Bf.Analyzer
          return GetCell();
       }
 
-      public void MoveRight()
-      {
-         if (++offset > maxOffset)
-         {
-            maxOffset = offset;
-         }
-      }
+      public void MoveRight() => ++offset;
 
-      public void MoveLeft()
-      {
-         if (--offset < minOffset)
-         {
-            minOffset = offset;
-         }
-      }
+      public void MoveLeft() => --offset;
 
       public bool BeginLoop([NotNullWhen(true)] out Pointer? loopStart)
       {
