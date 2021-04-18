@@ -63,10 +63,10 @@ namespace Bf.Analyzer
          Terms.Add(value);
       }
 
-      public void SetZero()
+      public void Clear(bool overwrite)
       {
          Value = 0;
-         Overwrite = true;
+         Overwrite = overwrite;
          Terms = null;
       }
 

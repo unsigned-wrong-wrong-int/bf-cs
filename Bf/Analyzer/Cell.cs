@@ -20,6 +20,25 @@ namespace Bf.Analyzer
 
       public bool IsNonZero => current.IsConst && current.Value != 0;
 
+      public Command Write()
+      {
+         if (current.IsConst)
+         {
+            return Command.Write(current.Value);
+         }
+         var node = current;
+         current = new(current, overwrite: false);
+         return Command.Write(node);
+      }
+
+      public Command Read()
+      {
+         var node = current;
+         current.Clear(overwrite: false);
+         current = new(current, overwrite: false);
+         return Command.Read(node);
+      }
+
       public LoopCounter? AsLoopCounter()
       {
          if (current.Previous is not null || current.Overwrite ||
@@ -67,7 +86,7 @@ namespace Bf.Analyzer
          if (current.ShiftRight == 0)
          {
             // [-]   { *p = 0; }
-            current.SetZero();
+            current.Clear(overwrite: true);
          }
          else
          {

@@ -57,6 +57,12 @@ namespace Bf.Analyzer
          return cell;
       }
 
+      public Cell GetCellForIO()
+      {
+         context.PerformsIO = true;
+         return GetCell();
+      }
+
       public void MoveRight()
       {
          if (++offset > maxOffset)
