@@ -7,9 +7,9 @@ namespace Bf.Analyzer
       readonly Node head;
       Node current;
 
-      public Cell()
+      public Cell(bool isZero)
       {
-         head = current = new(null, overwrite: false);
+         head = current = new(null, overwrite: isZero);
       }
 
       public void Increment() => ++current.Value;

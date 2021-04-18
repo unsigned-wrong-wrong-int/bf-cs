@@ -2,10 +2,19 @@ using System.Collections.Generic;
 
 namespace Bf.Analyzer
 {
+   enum PointerState : byte
+   {
+      Initial,
+      AfterLoop,
+      StartOfLoop,
+   }
+
    class Pointer
    {
       Pointer? next;
       readonly Context context;
+      readonly PointerState state;
+      bool isEndOfLoop;
 
       int maxOffset;
       int minOffset;
@@ -13,10 +22,12 @@ namespace Bf.Analyzer
 
       readonly Dictionary<int /* offset */, Cell> cells;
 
-      public Pointer(Context context)
+      public Pointer(Context context, PointerState state)
       {
          next = null;
          this.context = context;
+         this.state = state;
+         isEndOfLoop = false;
          maxOffset = minOffset = offset = 0;
          cells = new();
       }
@@ -26,7 +37,11 @@ namespace Bf.Analyzer
          pos += offset;
          if (!cells.TryGetValue(pos, out var cell))
          {
-            cell = new();
+            cell = new(isZero:
+               state == PointerState.AfterLoop
+                  ? pos == 0
+                  : state == PointerState.Initial
+               );
             cells.Add(pos, cell);
          }
          return cell;
