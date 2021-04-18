@@ -44,7 +44,10 @@ namespace Bf.Analyzer
 
       public Cell GetCell(int pos = 0)
       {
-         pos += offset;
+         checked
+         {
+            pos += offset;
+         }
          if (pos > maxOffset)
          {
             maxOffset = pos;
@@ -71,9 +74,9 @@ namespace Bf.Analyzer
          return GetCell();
       }
 
-      public void MoveRight() => ++offset;
+      public void MoveRight() => _ = checked(++offset);
 
-      public void MoveLeft() => --offset;
+      public void MoveLeft() => _ = checked(--offset);
 
       public bool BeginLoop([NotNullWhen(true)] out Pointer? loopStart)
       {
