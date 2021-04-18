@@ -162,6 +162,7 @@ namespace Bf.Analyzer
 
       bool OptimizeLoop(Pointer outer, Pointer loopEnd)
       {
+         outer.context.PerformsIO |= context.PerformsIO;
          Cell last;
          if (offset == 0)
          {
