@@ -33,6 +33,8 @@ namespace Bf.Analyzer
          cells = new();
       }
 
+      public Pointer() : this(new(false), PointerState.Initial) { }
+
       void AppendLoop(Pointer start, Pointer end)
       {
          next = start;
