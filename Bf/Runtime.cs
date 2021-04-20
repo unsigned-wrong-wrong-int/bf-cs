@@ -80,7 +80,10 @@ namespace Bf
          }
       }
 
-      public static void Error(string message) =>
+      public void Error(string message)
+      {
+         Flush();
          Console.Error.WriteLine($"Runtime Error: {message}");
+      }
    }
 }
