@@ -80,11 +80,7 @@ namespace Bf.Analyzer
 
       public bool BeginLoop([NotNullWhen(true)] out Pointer? loopStart)
       {
-         if (!cells.TryGetValue(offset, out var cell))
-         {
-            loopStart = new(new(offset == 0), PointerState.StartOfLoop);
-            return true;
-         }
+         var cell = GetCell(offset);
          if (cell.IsZero)
          {
             loopStart = null;
