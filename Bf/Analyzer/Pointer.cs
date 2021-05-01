@@ -23,6 +23,8 @@ namespace Bf.Analyzer
 
       readonly Dictionary<int /* offset */, Cell> cells;
 
+      readonly Queue<Command> commands;
+
       public Pointer(Context context, PointerState state)
       {
          next = null;
@@ -31,18 +33,12 @@ namespace Bf.Analyzer
          isEndOfLoop = false;
          maxOffset = minOffset = offset = 0;
          cells = new();
+         commands = new();
       }
 
       public Pointer() : this(new(false), PointerState.Initial) { }
 
-      void AppendLoop(Pointer start, Pointer end)
-      {
-         next = start;
-         end.isEndOfLoop = true;
-         end.next = new(context, PointerState.AfterLoop);
-      }
-
-      public Cell GetCell(int pos = 0)
+      Cell GetCell(int pos = 0)
       {
          checked
          {
@@ -68,15 +64,25 @@ namespace Bf.Analyzer
          return cell;
       }
 
-      public Cell GetCellForIO()
-      {
-         context.PerformsIO = true;
-         return GetCell();
-      }
+      public void Increment() => GetCell().Increment();
+
+      public void Decrement() => GetCell().Decrement();
 
       public void MoveRight() => _ = checked(++offset);
 
       public void MoveLeft() => _ = checked(--offset);
+
+      public void Write()
+      {
+         context.PerformsIO = true;
+         commands.Enqueue(GetCell().Write());
+      }
+
+      public void Read()
+      {
+         context.PerformsIO = true;
+         commands.Enqueue(GetCell().Read());
+      }
 
       public bool BeginLoop([NotNullWhen(true)] out Pointer? loopStart)
       {
@@ -90,6 +96,21 @@ namespace Bf.Analyzer
          return true;
       }
 
+      void AppendLoop(Pointer start, Pointer end)
+      {
+         next = start;
+         end.isEndOfLoop = true;
+         end.next = new(context, PointerState.AfterLoop);
+      }
+
+      void EnqueueCommands(Queue<Command> queue)
+      {
+         foreach (var command in queue)
+         {
+            commands.Enqueue(command);
+         }
+      }
+
       bool ToInfiniteLoop(Pointer outer, Pointer loopEnd)
       {
          context.End = CellState.NonZero;
@@ -101,6 +122,7 @@ namespace Bf.Analyzer
       {
          if (context.Start == CellState.NonZero)
          {
+            outer.EnqueueCommands(commands);
             foreach (var (pos, cell) in cells)
             {
                outer.GetCell(pos).Merge(cell);
@@ -118,7 +140,7 @@ namespace Bf.Analyzer
 
       bool ToMultipliation(Pointer outer, Cell last, Pointer loopEnd)
       {
-         if (last.AsLoopCounter() is not { } counter)
+         if (last.GetDivisor() is not { } divisor)
          {
             outer.AppendLoop(this, loopEnd);
             return true;
@@ -126,32 +148,34 @@ namespace Bf.Analyzer
 
          // `cells[0]` is identical to `last`
          _ = cells.Remove(0);
-         List<(int pos, LoopLocal local)> locals = new();
+         List<Step> steps = new();
          foreach (var (pos, cell) in cells)
          {
-            if (cell.AsLoopLocal() is not { } local)
+            if (cell.IsNoop)
+            {
+               continue;
+            }
+            if (cell.GetStep(pos) is not { } step)
             {
                goto leaveUnoptimized;
             }
-            if (!local.IsNoop)
+            steps.Add(step);
+         }
+
+         var command = outer.GetCell().Load(divisor, out var multiplier);
+         if (command is not null)
+         {
+            outer.commands.Enqueue(command);
+            if (command.Node is null)
             {
-               locals.Add((pos, local));
+               return false;
             }
          }
-
-         if (locals.Count == 0)
+         foreach (var step in steps)
          {
-            return outer.GetCell().TryMerge(counter);
+            outer.GetCell(step.Offset).Add(step, multiplier, command);
          }
-
-         if (!outer.GetCell().TryMerge(counter, out var step))
-         {
-            return false;
-         }
-         foreach (var (pos, local) in locals)
-         {
-            outer.GetCell(pos).Merge(local, step.Value);
-         }
+         outer.EnqueueCommands(commands);
          return true;
 
       leaveUnoptimized:

@@ -7,23 +7,21 @@ namespace Bf.Analyzer
       readonly Stack<(Pointer start, Pointer current)> loopStack;
       Pointer start;
       Pointer current;
-      readonly List<Command> commands;
 
       public Analyzer()
       {
          loopStack = new();
          current = start = new();
-         commands = new();
       }
 
-      public void Increment() => current.GetCell().Increment();
-      public void Decrement() => current.GetCell().Decrement();
+      public void Increment() => current.Increment();
+      public void Decrement() => current.Decrement();
 
       public void MoveRight() => current.MoveRight();
       public void MoveLeft() => current.MoveLeft();
 
-      public void Write() => commands.Add(current.GetCellForIO().Write());
-      public void Read() => commands.Add(current.GetCellForIO().Read());
+      public void Write() => current.Write();
+      public void Read() => current.Read();
 
       public bool BeginLoop()
       {

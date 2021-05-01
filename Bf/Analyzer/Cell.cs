@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Bf.Analyzer
 {
    class Cell
@@ -20,6 +18,9 @@ namespace Bf.Analyzer
 
       public bool IsNonZero => current.IsConst && current.Value != 0;
 
+      public bool IsNoop => current.Previous is null &&
+         !current.Overwrite && current.Value != 0 && !current.IsDependent;
+
       public Command Write()
       {
          if (current.IsConst)
@@ -39,37 +40,6 @@ namespace Bf.Analyzer
          return Command.Read(node);
       }
 
-      public LoopCounter? AsLoopCounter()
-      {
-         if (current.Previous is not null || current.Overwrite ||
-            current.Terms is not null)
-         {
-            return null;
-         }
-         return new(current.Value);
-      }
-
-      public LoopLocal? AsLoopLocal()
-      {
-         if (current.Previous is {} prev)
-         {
-            if (prev.Previous is not null || prev.Overwrite ||
-               current.Terms is not null || current.Value != 0)
-            {
-               return null;
-            }
-            return new(prev, isConsumed: true);
-         }
-         else
-         {
-            if (current.Overwrite)
-            {
-               return null;
-            }
-            return new(current, isConsumed: false);
-         }
-      }
-
       public void Merge(Cell cell)
       {
          var next = cell.head;
@@ -77,49 +47,91 @@ namespace Bf.Analyzer
          current = next;
       }
 
-      public bool TryMerge(LoopCounter counter)
+      public byte? GetDivisor()
       {
-         if (LoopStep.Divide(current, counter.Value) is null)
+         if (current.Previous is not null || current.Overwrite ||
+            current.IsDependent)
          {
-            return false;
+            return null;
          }
-         if (current.ShiftRight == 0)
+         return current.Value;
+      }
+
+      public Step? GetStep(int offset)
+      {
+         if (current.Previous is { } prev)
          {
-            // [-]   { *p = 0; }
-            current.Clear(overwrite: true);
+            if (prev.Previous is not null ||
+               prev.Overwrite || prev.IsDependent ||
+               current.Value != 0 || current.IsDependent)
+            {
+               return null;
+            }
+            return new(prev, offset, isConsumed: true);
          }
          else
          {
-            // [--]
-            // { assert((*p & 1) == 0, "infinite loop"); *p = 0; }
-            current = new(current, overwrite: true);
+            if (current.Overwrite)
+            {
+               return null;
+            }
+            return new(current, offset, isConsumed: false);
          }
-         return true;
       }
 
-      public bool TryMerge(LoopCounter counter,
-         [NotNullWhen(true)] out LoopStep? step)
+      public Command? Load(byte divisor, out byte multiplier)
       {
-         step = LoopStep.Divide(current, counter.Value);
-         if (step is null)
+         multiplier = divisor.Reciprocal(out var shiftRight);
+         if (current.IsConst)
          {
-            return false;
+            if ((current.Value & ~(-1 << shiftRight)) != 0)
+            {
+               return Command.Load(null, shiftRight);
+            }
+            multiplier *= (byte)(current.Value >> shiftRight);
+            return null;
          }
          current = new(current, overwrite: true);
-         return true;
+         return Command.Load(current, shiftRight);
       }
 
-      public void Merge(LoopLocal local, LoopStep step)
+      public void Add(Step step, byte multiplier, Command? command)
       {
-         var node = local.Node;
-         if (local.IsNonZero)
+         var node = step.Node;
+         if (node.Value != 0)
          {
-            step.AddProduct(current, node.Value);
-            node.Value = 0;
+            if (command is null)
+            {
+               current.Value += (byte)(multiplier * node.Value);
+            }
+            else
+            {
+               command.AddTarget(current, step.Offset, multiplier);
+            }
          }
-         node.Prepend(current);
-         current =
-            local.IsConsumedInLoop ? new(node, overwrite: true) : node;
+         if (step.IsConsumedInLoop)
+         {
+            current = new(current, overwrite: true);
+         }
+      }
+   }
+
+   readonly struct Step
+   {
+      // [- > +++[->++<] > ++ < < ]
+      //      ^^^          ^^
+      //       |          Step { IsConsumedInLoop = false }
+      //      Step { IsConsumedInLoop = true }
+
+      public Node Node { get; }
+      public int Offset { get; }
+      public bool IsConsumedInLoop { get; }
+
+      public Step(Node node, int offset, bool isConsumed)
+      {
+         Node = node;
+         Offset = offset;
+         IsConsumedInLoop = isConsumed;
       }
    }
 }
