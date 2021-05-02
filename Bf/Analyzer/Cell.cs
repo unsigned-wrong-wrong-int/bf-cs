@@ -2,12 +2,12 @@ namespace Bf.Analyzer
 {
    class Cell
    {
-      readonly Node head;
+      public Node Head { get; }
       Node current;
 
       public Cell(bool isZero)
       {
-         head = current = new(null, overwrite: isZero);
+         Head = current = new(null, overwrite: isZero);
       }
 
       public void Increment() => ++current.Value;
@@ -42,7 +42,7 @@ namespace Bf.Analyzer
 
       public void Merge(Cell cell)
       {
-         var next = cell.head;
+         var next = cell.Head;
          next.Prepend(current);
          current = next;
       }
