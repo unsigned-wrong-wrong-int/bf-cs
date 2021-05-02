@@ -23,7 +23,7 @@ namespace Bf.Analyzer
 
       readonly Dictionary<int /* offset */, Cell> cells;
 
-      readonly Queue<Command> commands;
+      readonly Queue<(int offset, Command)> commands;
 
       public Pointer(Context context, PointerState state)
       {
@@ -75,13 +75,13 @@ namespace Bf.Analyzer
       public void Write()
       {
          context.PerformsIO = true;
-         commands.Enqueue(GetCell().Write());
+         commands.Enqueue((offset, GetCell().Write()));
       }
 
       public void Read()
       {
          context.PerformsIO = true;
-         commands.Enqueue(GetCell().Read());
+         commands.Enqueue((offset, GetCell().Read()));
       }
 
       public bool BeginLoop([NotNullWhen(true)] out Pointer? loopStart)
@@ -103,11 +103,11 @@ namespace Bf.Analyzer
          end.next = new(context, PointerState.AfterLoop);
       }
 
-      void EnqueueCommands(Queue<Command> queue)
+      void EnqueueCommands(Queue<(int offset, Command)> queue)
       {
-         foreach (var command in queue)
+         foreach (var (offset, command) in queue)
          {
-            commands.Enqueue(command);
+            commands.Enqueue((this.offset + offset, command));
          }
       }
 
@@ -165,7 +165,7 @@ namespace Bf.Analyzer
          var command = outer.GetCell().Load(divisor, out var multiplier);
          if (command is not null)
          {
-            outer.commands.Enqueue(command);
+            outer.commands.Enqueue((0, command));
             if (command.Node is null)
             {
                return false;
