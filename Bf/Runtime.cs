@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Bf
 {
-   class Runtime
+   class Runtime : IRuntime
    {
       public int Cells { get; set; } = 0x8000;
 
@@ -22,6 +22,10 @@ namespace Bf
          output = new byte[4];
          outputCount = 0;
       }
+
+      public byte[] Start() => new byte[Cells];
+
+      public void End() => Flush();
 
       IEnumerator<byte> input;
 
@@ -80,7 +84,7 @@ namespace Bf
          }
       }
 
-      public void Error(string message)
+      public void Abort(string message)
       {
          Flush();
          Console.Error.WriteLine($"Runtime Error: {message}");
