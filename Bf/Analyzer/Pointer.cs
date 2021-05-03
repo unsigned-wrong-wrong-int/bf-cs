@@ -228,5 +228,108 @@ namespace Bf.Analyzer
 
       public bool EndLoop(Pointer loopStart, Pointer loopEnd) =>
          loopStart.OptimizeLoop(this, loopEnd);
+
+      void EmitBeginBlock(Builder builder)
+      {
+         if (state == PointerState.StartOfLoop)
+         {
+            if (context.IsConditional)
+            {
+               builder.BeginIf();
+            }
+            if (context.Repetition != Repetition.Once)
+            {
+               switch (context.Move)
+               {
+                  case PointerMove.Fixed:
+                     builder.CheckUpperBound(maxOffset);
+                     builder.CheckLowerBound(minOffset);
+                     builder.BeginLoop();
+                     return;
+                  case PointerMove.Forward:
+                     builder.CheckLowerBound(minOffset);
+                     builder.BeginLoop();
+                     builder.CheckUpperBound(maxOffset);
+                     return;
+                  case PointerMove.Backward:
+                     builder.CheckUpperBound(maxOffset);
+                     builder.BeginLoop();
+                     builder.CheckLowerBound(minOffset);
+                     return;
+               }
+               builder.BeginLoop();
+            }
+         }
+         builder.CheckUpperBound(maxOffset);
+         builder.CheckLowerBound(minOffset);
+      }
+
+      void EmitEndBlock(Builder builder)
+      {
+         builder.Move(offset);
+         if (!isEndOfLoop)
+         {
+            return;
+         }
+         if (context.Repetition != Repetition.Once)
+         {
+            builder.EndLoop(context.Repetition == Repetition.Ordinary);
+         }
+         if (context.IsConditional)
+         {
+            builder.EndIf();
+         }
+      }
+
+      void EmitCommands(Builder builder)
+      {
+         foreach (var (offset, cell) in cells)
+         {
+            builder.AddConst(offset, cell.Head.Value, cell.Head.Overwrite);
+         }
+         foreach (var (offset, command) in commands)
+         {
+            switch (command.Type)
+            {
+               case CommandType.Write:
+                  if (command.Node is null)
+                  {
+                     builder.WriteConst(command.Value);
+                     continue;
+                  }
+                  builder.Write(offset);
+                  break;
+               case CommandType.Read:
+                  builder.Read(offset);
+                  break;
+               case CommandType.InfiniteLoop:
+                  builder.InfiniteLoop(command.IsConditional);
+                  break;
+               default:
+                  builder.Load(offset, command.ShiftRight);
+                  if (command.Targets is not null)
+                  {
+                     foreach (var target in command.Targets)
+                     {
+                        if (target.Valid)
+                        {
+                           builder.Add(checked(offset + target.Offset),
+                              target.Multiplier);
+                        }
+                     }
+                  }
+                  break;
+            }
+            builder.AddConst(offset,
+               command.Node!.Value, command.Node.Overwrite);
+         }
+      }
+
+      public void Emit(Builder builder)
+      {
+         EmitBeginBlock(builder);
+         EmitCommands(builder);
+         EmitEndBlock(builder);
+      }
    }
 }
