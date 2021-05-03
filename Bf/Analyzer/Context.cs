@@ -1,16 +1,10 @@
 namespace Bf.Analyzer
 {
-   enum EnterBlock : byte
+   enum Repetition : byte
    {
-      Always,
-      IfNonZero,
-   }
-
-   enum ExitBlock : byte
-   {
-      Always,
-      IfZero,
-      Never,
+      Ordinary,
+      Once,
+      Infinite,
    }
 
    enum PointerMove : byte
@@ -23,8 +17,8 @@ namespace Bf.Analyzer
 
    class Context
    {
-      public EnterBlock Start { get; set; }
-      public ExitBlock End { get; set; }
+      public bool IsConditional { get; set; }
+      public Repetition Repetition { get; set; }
 
       public PointerMove Move { get; set; }
 
@@ -32,8 +26,8 @@ namespace Bf.Analyzer
 
       public Context(bool isNonZero)
       {
-         Start = isNonZero ? EnterBlock.Always : EnterBlock.IfNonZero;
-         End = ExitBlock.IfZero;
+         IsConditional = !isNonZero;
+         Repetition = Repetition.Ordinary;
          Move = PointerMove.Fixed;
          PerformsIO = false;
       }

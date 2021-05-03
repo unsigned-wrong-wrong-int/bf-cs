@@ -115,19 +115,18 @@ namespace Bf.Analyzer
       {
          if (!context.PerformsIO)
          {
-            var isConditional = context.Start == EnterBlock.IfNonZero;
             outer.commands.Enqueue((outer.offset,
-               Command.InfiniteLoop(isConditional)));
-            return isConditional;
+               Command.InfiniteLoop(context.IsConditional)));
+            return context.IsConditional;
          }
-         context.End = ExitBlock.Never;
+         context.Repetition = Repetition.Infinite;
          outer.AppendLoop(this, loopEnd);
          return true;
       }
 
       bool ToConditional(Pointer outer, Pointer loopEnd)
       {
-         if (context.Start == EnterBlock.Always)
+         if (!context.IsConditional)
          {
             outer.EnqueueCommands(commands);
             foreach (var (pos, cell) in cells)
@@ -140,7 +139,7 @@ namespace Bf.Analyzer
             }
             return true;
          }
-         context.End = ExitBlock.Always;
+         context.Repetition = Repetition.Once;
          outer.AppendLoop(this, loopEnd);
          return true;
       }
