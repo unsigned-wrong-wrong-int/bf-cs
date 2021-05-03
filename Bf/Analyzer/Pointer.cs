@@ -12,7 +12,8 @@ namespace Bf.Analyzer
 
    class Pointer
    {
-      Pointer? next;
+      public Pointer? Next { get; private set; }
+
       readonly Context context;
       readonly PointerState state;
       bool isEndOfLoop;
@@ -27,7 +28,7 @@ namespace Bf.Analyzer
 
       public Pointer(Context context, PointerState state)
       {
-         next = null;
+         Next = null;
          this.context = context;
          this.state = state;
          isEndOfLoop = false;
@@ -98,9 +99,9 @@ namespace Bf.Analyzer
 
       void AppendLoop(Pointer start, Pointer end)
       {
-         next = start;
+         Next = start;
          end.isEndOfLoop = true;
-         end.next = new(context, PointerState.AfterLoop);
+         end.Next = new(context, PointerState.AfterLoop);
       }
 
       void EnqueueCommands(Queue<(int offset, Command)> queue)
@@ -133,9 +134,9 @@ namespace Bf.Analyzer
             {
                outer.GetCell(pos).Merge(cell);
             }
-            if (next is not null)
+            if (Next is not null)
             {
-               outer.AppendLoop(next, loopEnd);
+               outer.AppendLoop(Next, loopEnd);
             }
             return true;
          }
@@ -205,7 +206,7 @@ namespace Bf.Analyzer
             {
                return ToConditional(outer, loopEnd);
             }
-            if (next is null && !context.PerformsIO)
+            if (Next is null && !context.PerformsIO)
             {
                return ToMultipliation(outer, last, loopEnd);
             }
