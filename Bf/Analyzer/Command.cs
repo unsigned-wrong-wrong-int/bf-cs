@@ -4,6 +4,7 @@ namespace Bf.Analyzer
 {
    enum CommandType
    {
+      InfiniteLoop,
       Load,
       Write,
       Read,
@@ -47,7 +48,10 @@ namespace Bf.Analyzer
          Targets.Add(new(node.GetTag(), offset, multiplier));
       }
 
-      public static Command Load(Node? node, byte shiftRight) =>
+      public static Command InfiniteLoop() =>
+         new(CommandType.InfiniteLoop, 0, null, null);
+
+      public static Command Load(Node node, byte shiftRight) =>
          new(CommandType.Load, shiftRight, node, null);
 
       public static Command Write(Node node) =>

@@ -113,9 +113,14 @@ namespace Bf.Analyzer
 
       bool ToInfiniteLoop(Pointer outer, Pointer loopEnd)
       {
+         if (context.Start == EnterBlock.Always && !context.PerformsIO)
+         {
+            outer.commands.Enqueue((outer.offset, Command.InfiniteLoop()));
+            return false;
+         }
          context.End = ExitBlock.Never;
          outer.AppendLoop(this, loopEnd);
-         return context.Start == EnterBlock.IfNonZero;
+         return true;
       }
 
       bool ToConditional(Pointer outer, Pointer loopEnd)
@@ -166,7 +171,7 @@ namespace Bf.Analyzer
          if (command is not null)
          {
             outer.commands.Enqueue((0, command));
-            if (command.Node is null)
+            if (command.Type == CommandType.InfiniteLoop)
             {
                return false;
             }

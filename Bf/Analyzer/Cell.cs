@@ -86,7 +86,7 @@ namespace Bf.Analyzer
          {
             if ((current.Value & ~(-1 << shiftRight)) != 0)
             {
-               return Command.Load(null, shiftRight);
+               return Command.InfiniteLoop();
             }
             multiplier *= (byte)(current.Value >> shiftRight);
             return null;
