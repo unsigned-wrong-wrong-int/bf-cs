@@ -113,14 +113,14 @@ namespace Bf.Analyzer
 
       bool ToInfiniteLoop(Pointer outer, Pointer loopEnd)
       {
-         context.End = CellState.NonZero;
+         context.End = ExitBlock.Never;
          outer.AppendLoop(this, loopEnd);
-         return context.Start == CellState.Any;
+         return context.Start == EnterBlock.IfNonZero;
       }
 
       bool ToConditional(Pointer outer, Pointer loopEnd)
       {
-         if (context.Start == CellState.NonZero)
+         if (context.Start == EnterBlock.Always)
          {
             outer.EnqueueCommands(commands);
             foreach (var (pos, cell) in cells)
@@ -133,7 +133,7 @@ namespace Bf.Analyzer
             }
             return true;
          }
-         context.End = CellState.Zero;
+         context.End = ExitBlock.Always;
          outer.AppendLoop(this, loopEnd);
          return true;
       }
@@ -187,8 +187,7 @@ namespace Bf.Analyzer
 
       bool OptimizeLoop(Pointer outer, Pointer loopEnd)
       {
-         context.Close(offset);
-         outer.context.Include(context);
+         context.Close(offset, outer.context);
          Cell last;
          if (offset == 0)
          {

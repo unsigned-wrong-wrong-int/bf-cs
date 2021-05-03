@@ -1,10 +1,16 @@
 namespace Bf.Analyzer
 {
-   enum CellState : byte
+   enum EnterBlock : byte
    {
-      Any,
-      Zero,
-      NonZero,
+      Always,
+      IfNonZero,
+   }
+
+   enum ExitBlock : byte
+   {
+      Always,
+      IfZero,
+      Never,
    }
 
    enum PointerMove : byte
@@ -17,8 +23,8 @@ namespace Bf.Analyzer
 
    class Context
    {
-      public CellState Start { get; set; }
-      public CellState End { get; set; }
+      public EnterBlock Start { get; set; }
+      public ExitBlock End { get; set; }
 
       public PointerMove Move { get; set; }
 
@@ -26,31 +32,27 @@ namespace Bf.Analyzer
 
       public Context(bool isNonZero)
       {
-         Start = isNonZero ? CellState.NonZero : CellState.Any;
-         End = CellState.Any;
+         Start = isNonZero ? EnterBlock.Always : EnterBlock.IfNonZero;
+         End = ExitBlock.IfZero;
          Move = PointerMove.Fixed;
          PerformsIO = false;
       }
 
-      public void Close(int offset)
+      public void Close(int offset, Context outer)
       {
          Move |= offset switch {
             > 0 => PointerMove.Forward,
             < 0 => PointerMove.Backward,
             _ => PointerMove.Fixed,
          };
-      }
-
-      public void Include(Context inner)
-      {
-         // (Move, inner.Move) switch {
-         //    (Fixed, m) => m,
+         // outer.Move = (outer.Move, Move) switch {
+         //    (Fixed, var move) => move,
          //    (Forward, Fixed or Forward) => Forward,
          //    (Backward, Fixed or Backward) => Backward,
          //    (_, _) => Variable,
-         // }
-         Move |= inner.Move;
-         PerformsIO |= inner.PerformsIO;
+         // };
+         outer.Move |= Move;
+         outer.PerformsIO |= PerformsIO;
       }
    }
 }
