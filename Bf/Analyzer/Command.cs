@@ -12,13 +12,15 @@ namespace Bf.Analyzer
 
    readonly struct Target
    {
-      public NodeTag Tag { get; }
+      readonly NodeTag tag;
+      public bool Valid => !tag.Removed;
+
       public int Offset { get; }
       public byte Multiplier { get; }
 
       public Target(NodeTag tag, int offset, byte multiplier)
       {
-         Tag = tag;
+         this.tag = tag;
          Offset = offset;
          Multiplier = multiplier;
       }
