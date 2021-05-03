@@ -113,10 +113,12 @@ namespace Bf.Analyzer
 
       bool ToInfiniteLoop(Pointer outer, Pointer loopEnd)
       {
-         if (context.Start == EnterBlock.Always && !context.PerformsIO)
+         if (!context.PerformsIO)
          {
-            outer.commands.Enqueue((outer.offset, Command.InfiniteLoop()));
-            return false;
+            var isConditional = context.Start == EnterBlock.IfNonZero;
+            outer.commands.Enqueue((outer.offset,
+               Command.InfiniteLoop(isConditional)));
+            return isConditional;
          }
          context.End = ExitBlock.Never;
          outer.AppendLoop(this, loopEnd);
