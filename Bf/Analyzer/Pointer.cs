@@ -3,24 +3,20 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Bf.Analyzer
 {
-   enum PointerState : byte
-   {
-      Initial,
-      AfterLoop,
-      StartOfLoop,
-   }
-
    class Pointer
    {
       public Pointer? Next { get; private set; }
 
-      readonly Context context;
-      readonly PointerState state;
-      bool isEndOfLoop;
+      public Context Context { get; }
 
-      int maxOffset;
-      int minOffset;
+      readonly bool isInitial;
+      public bool IsStartOfLoop { get; }
+      public bool IsEndOfLoop { get; private set; }
+
+      public int MaxOffset { get; private set; }
+      public int MinOffset { get; private set; }
       int offset;
+      public int LastOffset => offset;
 
       readonly Dictionary<int /* offset */, Cell> cells;
 
@@ -28,18 +24,22 @@ namespace Bf.Analyzer
 
       public CommandSequence GetCommands() => new(cells, commands);
 
-      public Pointer(Context context, PointerState state)
+      public Pointer(Context context, bool isStartOfLoop)
       {
          Next = null;
-         this.context = context;
-         this.state = state;
-         isEndOfLoop = false;
-         maxOffset = minOffset = offset = 0;
+         Context = context;
+         IsStartOfLoop = isStartOfLoop;
+         isInitial = false;
+         IsEndOfLoop = false;
+         MaxOffset = MinOffset = offset = 0;
          cells = new();
          commands = new();
       }
 
-      public Pointer() : this(new(false), PointerState.Initial) { }
+      public Pointer() : this(new(false), isStartOfLoop: false)
+      {
+         isInitial = true;
+      }
 
       Cell GetCell(int pos = 0)
       {
@@ -47,21 +47,17 @@ namespace Bf.Analyzer
          {
             pos += offset;
          }
-         if (pos > maxOffset)
+         if (pos > MaxOffset)
          {
-            maxOffset = pos;
+            MaxOffset = pos;
          }
-         else if (pos < minOffset)
+         else if (pos < MinOffset)
          {
-            minOffset = pos;
+            MinOffset = pos;
          }
          if (!cells.TryGetValue(pos, out var cell))
          {
-            cell = new(isZero:
-               state == PointerState.AfterLoop
-                  ? pos == 0
-                  : state == PointerState.Initial
-               );
+            cell = new(isZero: IsStartOfLoop ? isInitial : pos == 0);
             cells.Add(pos, cell);
          }
          return cell;
@@ -77,13 +73,13 @@ namespace Bf.Analyzer
 
       public void Write()
       {
-         context.PerformsIO = true;
+         Context.PerformsIO = true;
          commands.Enqueue((offset, GetCell().Write()));
       }
 
       public void Read()
       {
-         context.PerformsIO = true;
+         Context.PerformsIO = true;
          commands.Enqueue((offset, GetCell().Read()));
       }
 
@@ -95,15 +91,15 @@ namespace Bf.Analyzer
             loopStart = null;
             return false;
          }
-         loopStart = new(new(cell.IsNonZero), PointerState.StartOfLoop);
+         loopStart = new(new(cell.IsNonZero), isStartOfLoop: true);
          return true;
       }
 
       void AppendLoop(Pointer start, Pointer end)
       {
          Next = start;
-         end.isEndOfLoop = true;
-         end.Next = new(context, PointerState.AfterLoop);
+         end.IsEndOfLoop = true;
+         end.Next = new(Context, isStartOfLoop: false);
       }
 
       void EnqueueCommands(Queue<(int offset, Command)> queue)
@@ -116,20 +112,20 @@ namespace Bf.Analyzer
 
       bool ToInfiniteLoop(Pointer outer, Pointer loopEnd)
       {
-         if (!context.PerformsIO)
+         if (!Context.PerformsIO)
          {
             outer.commands.Enqueue((outer.offset,
-               Command.InfiniteLoop(context.IsConditional)));
-            return context.IsConditional;
+               Command.InfiniteLoop(Context.IsConditional)));
+            return Context.IsConditional;
          }
-         context.Repetition = Repetition.Infinite;
+         Context.Repetition = Repetition.Infinite;
          outer.AppendLoop(this, loopEnd);
          return true;
       }
 
       bool ToConditional(Pointer outer, Pointer loopEnd)
       {
-         if (!context.IsConditional)
+         if (!Context.IsConditional)
          {
             outer.EnqueueCommands(commands);
             foreach (var (pos, cell) in cells)
@@ -142,7 +138,7 @@ namespace Bf.Analyzer
             }
             return true;
          }
-         context.Repetition = Repetition.Once;
+         Context.Repetition = Repetition.Once;
          outer.AppendLoop(this, loopEnd);
          return true;
       }
@@ -196,7 +192,7 @@ namespace Bf.Analyzer
 
       bool OptimizeLoop(Pointer outer, Pointer loopEnd)
       {
-         context.Close(offset, outer.context);
+         Context.Close(offset, outer.Context);
          Cell last;
          if (offset == 0)
          {
@@ -208,7 +204,7 @@ namespace Bf.Analyzer
             {
                return ToConditional(outer, loopEnd);
             }
-            if (Next is null && !context.PerformsIO)
+            if (Next is null && !Context.PerformsIO)
             {
                return ToMultipliation(outer, last, loopEnd);
             }
@@ -233,51 +229,51 @@ namespace Bf.Analyzer
 
       void EmitBeginBlock(Builder builder)
       {
-         if (state == PointerState.StartOfLoop)
+         if (IsStartOfLoop)
          {
-            if (context.IsConditional)
+            if (Context.IsConditional)
             {
                builder.BeginIf();
             }
-            if (context.Repetition != Repetition.Once)
+            if (Context.Repetition != Repetition.Once)
             {
-               switch (context.Move)
+               switch (Context.Move)
                {
                   case PointerMove.Fixed:
-                     builder.CheckUpperBound(maxOffset);
-                     builder.CheckLowerBound(minOffset);
+                     builder.CheckUpperBound(MaxOffset);
+                     builder.CheckLowerBound(MinOffset);
                      builder.BeginLoop();
                      return;
                   case PointerMove.Forward:
-                     builder.CheckLowerBound(minOffset);
+                     builder.CheckLowerBound(MinOffset);
                      builder.BeginLoop();
-                     builder.CheckUpperBound(maxOffset);
+                     builder.CheckUpperBound(MaxOffset);
                      return;
                   case PointerMove.Backward:
-                     builder.CheckUpperBound(maxOffset);
+                     builder.CheckUpperBound(MaxOffset);
                      builder.BeginLoop();
-                     builder.CheckLowerBound(minOffset);
+                     builder.CheckLowerBound(MinOffset);
                      return;
                }
                builder.BeginLoop();
             }
          }
-         builder.CheckUpperBound(maxOffset);
-         builder.CheckLowerBound(minOffset);
+         builder.CheckUpperBound(MaxOffset);
+         builder.CheckLowerBound(MinOffset);
       }
 
       void EmitEndBlock(Builder builder)
       {
          builder.Move(offset);
-         if (!isEndOfLoop)
+         if (!IsEndOfLoop)
          {
             return;
          }
-         if (context.Repetition != Repetition.Once)
+         if (Context.Repetition != Repetition.Once)
          {
-            builder.EndLoop(context.Repetition == Repetition.Ordinary);
+            builder.EndLoop(Context.Repetition == Repetition.Ordinary);
          }
-         if (context.IsConditional)
+         if (Context.IsConditional)
          {
             builder.EndIf();
          }
