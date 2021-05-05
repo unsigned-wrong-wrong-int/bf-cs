@@ -74,6 +74,32 @@ namespace Bf
 
       public Token Current => current;
 
+      public bool SkipCurrentLoop()
+      {
+         var level = 1;
+         while (MoveNext())
+         {
+            switch (current)
+            {
+               case Token.BeginLoop:
+                  ++level;
+                  break;
+               case Token.EndLoop:
+                  if (--level == 0)
+                  {
+                     return true;
+                  }
+                  break;
+            }
+         }
+         return false;
+      }
+
+      public void SkipRest()
+      {
+         while (MoveNext()) { }
+      }
+
       public bool IsValid => !error;
 
       void Error(char c, int line, int column)

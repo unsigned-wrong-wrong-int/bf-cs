@@ -39,26 +39,17 @@ namespace Bf
                case Token.BeginLoop:
                   if (!analyzer.BeginLoop())
                   {
-                     goto skipCurrentLoop;
+                     scanner.SkipCurrentLoop();
                   }
                   break;
                case Token.EndLoop:
                   if (!analyzer.EndLoop())
                   {
-                     goto skipCurrentLoop;
-                  }
-                  break;
-               skipCurrentLoop:
-                  while (scanner.MoveNext())
-                  {
-                     if (scanner.Current == Token.EndLoop)
-                     {
-                        break;
-                     }
+                     scanner.SkipCurrentLoop();
                   }
                   break;
                case Token.InvalidBracket:
-                  while (scanner.MoveNext()) { }
+                  scanner.SkipRest();
                   break;
             }
          }
