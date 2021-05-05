@@ -4,6 +4,7 @@ namespace Bf.Analyzer
 {
    enum CommandType
    {
+      Initialize,
       InfiniteLoop,
       Load,
       Write,
@@ -68,6 +69,9 @@ namespace Bf.Analyzer
          }
          Targets.Add(new(node.GetTag(), offset, multiplier));
       }
+
+      public static Command Initialize(Node node) =>
+         new(CommandType.Initialize, node);
 
       public static Command InfiniteLoop(bool isConditional) =>
          new(CommandType.InfiniteLoop, isConditional);

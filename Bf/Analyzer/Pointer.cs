@@ -26,6 +26,8 @@ namespace Bf.Analyzer
 
       readonly Queue<(int offset, Command)> commands;
 
+      public CommandSequence GetCommands() => new(cells, commands);
+
       public Pointer(Context context, PointerState state)
       {
          Next = null;
@@ -283,11 +285,7 @@ namespace Bf.Analyzer
 
       void EmitCommands(Builder builder)
       {
-         foreach (var (offset, cell) in cells)
-         {
-            builder.AddConst(offset, cell.Head.Value, cell.Head.Overwrite);
-         }
-         foreach (var (offset, command) in commands)
+         foreach (var (offset, command) in GetCommands())
          {
             switch (command.Type)
             {
@@ -305,7 +303,7 @@ namespace Bf.Analyzer
                case CommandType.InfiniteLoop:
                   builder.InfiniteLoop(command.IsConditional);
                   break;
-               default:
+               case CommandType.Load:
                   builder.Load(offset, command.ShiftRight);
                   if (command.Targets is not null)
                   {
