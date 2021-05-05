@@ -14,36 +14,58 @@ namespace Bf.Analyzer
          current = start = new();
       }
 
-      public void Increment() => current.Increment();
-      public void Decrement() => current.Decrement();
-
-      public void MoveRight() => current.MoveRight();
-      public void MoveLeft() => current.MoveLeft();
-
-      public void Write() => current.Write();
-      public void Read() => current.Read();
-
-      public bool BeginLoop()
+      public Pointer? Parse(System.ReadOnlySpan<byte> source)
       {
-         if (current.BeginLoop(out var loopStart))
+         Scanner scanner = new(source);
+         while (scanner.MoveNext())
          {
-            loopStack.Push((start, current));
-            current = start = loopStart;
-            return true;
+            switch (scanner.Current)
+            {
+               case Token.Increment:
+                  current.Increment();
+                  break;
+               case Token.Decrement:
+                  current.Decrement();
+                  break;
+               case Token.MoveRight:
+                  current.MoveRight();
+                  break;
+               case Token.MoveLeft:
+                  current.MoveLeft();
+                  break;
+               case Token.Write:
+                  current.Write();
+                  break;
+               case Token.Read:
+                  current.Read();
+                  break;
+               case Token.BeginLoop:
+                  if (current.BeginLoop(out var loopStart))
+                  {
+                     loopStack.Push((start, current));
+                     current = start = loopStart;
+                     break;
+                  }
+                  _ = scanner.SkipCurrentLoop();
+                  break;
+               case Token.EndLoop:
+                  var (outerStart, outer) = loopStack.Pop();
+                  if (outer.EndLoop(start, current))
+                  {
+                     (start, current) = (outerStart, outer);
+                     break;
+                  }
+                  if (scanner.SkipCurrentLoop())
+                  {
+                     (start, current) = loopStack.Pop();
+                  }
+                  break;
+               case Token.InvalidBracket:
+                  scanner.SkipRest();
+                  break;
+            }
          }
-         return false;
-      }
-
-      public bool EndLoop()
-      {
-         var (outerStart, outer) = loopStack.Pop();
-         if (outer.EndLoop(start, current))
-         {
-            start = outerStart;
-            current = outer;
-            return true;
-         }
-         return false;
+         return scanner.IsValid ? start : null;
       }
    }
 }
