@@ -4,19 +4,16 @@ using System.Reflection;
 
 namespace Bf.Analyzer
 {
-   readonly struct RuntimeInfo
+   class RuntimeMethods
    {
-      public readonly Type Type;
+      public MethodInfo Start { get; }
+      public MethodInfo End { get; }
+      public MethodInfo Read { get; }
+      public MethodInfo Write { get; }
+      public MethodInfo Abort { get; }
 
-      public readonly MethodInfo Start;
-      public readonly MethodInfo End;
-      public readonly MethodInfo Read;
-      public readonly MethodInfo Write;
-      public readonly MethodInfo Abort;
-
-      public RuntimeInfo(Type type)
+      public RuntimeMethods(Type type)
       {
-         Type = type;
          var map = type.GetInterfaceMap(typeof(IRuntime));
          var methods = map.InterfaceMethods.Zip(map.TargetMethods)
             .ToDictionary(pair => pair.First.Name, pair => pair.Second);
