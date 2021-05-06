@@ -34,22 +34,21 @@ namespace Bf.Analyzer
          {
             if (initial)
             {
-               if (!cells.MoveNext())
+               if (cells.MoveNext())
                {
-                  initial = false;
-                  return false;
+                  Cell cell;
+                  (current.offset, cell) = cells.Current;
+                  current.command = cell.Initializer;
+                  return true;
                }
-               Cell cell;
-               (current.offset, cell) = cells.Current;
-               current.command = cell.Initializer;
+               initial = false;
+            }
+            if (commands.MoveNext())
+            {
+               current = commands.Current;
                return true;
             }
-            if (!commands.MoveNext())
-            {
-               return false;
-            }
-            current = commands.Current;
-            return true;
+            return false;
          }
 
          public (int offset, Command command) Current => current;
