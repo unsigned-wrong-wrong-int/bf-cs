@@ -1,26 +1,24 @@
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using Bf.Core;
 
 namespace Bf.Analyzer
 {
    class Builder
    {
-      readonly DynamicMethod method;
       readonly ILGenerator il;
 
-      readonly RuntimeInfo runtime;
+      readonly RuntimeMethods runtime;
 
       readonly Label pointerError;
       readonly Label loopError;
 
       readonly Stack<Label> labels;
 
-      public Builder(RuntimeInfo runtime)
+      public Builder(EntryPoint entryPoint)
       {
-         method = new DynamicMethod("",
-            returnType: null,
-            parameterTypes: new[] { runtime.Type });
-         il = method.GetILGenerator();
+         il = entryPoint.Generator;
+         runtime = entryPoint.Runtime;
          pointerError = il.DefineLabel();
          loopError = il.DefineLabel();
          labels = new();
