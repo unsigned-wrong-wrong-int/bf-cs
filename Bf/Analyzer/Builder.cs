@@ -163,6 +163,7 @@ namespace Bf.Analyzer
 
       public void Write(int offset)
       {
+         il.Emit(OpCodes.Ldarg_0);
          AtOffset(offset);
          // runtime.Write(*$ptr);
          il.Emit(OpCodes.Ldind_U1);
@@ -171,6 +172,7 @@ namespace Bf.Analyzer
 
       public void Read(int offset)
       {
+         il.Emit(OpCodes.Ldarg_0);
          AtOffset(offset);
          // *$ptr = runtime.Read();
          il.Emit(OpCodes.Ldarg_0);
