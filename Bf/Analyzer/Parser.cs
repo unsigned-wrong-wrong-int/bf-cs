@@ -1,20 +1,21 @@
+using System;
 using System.Collections.Generic;
 
 namespace Bf.Analyzer
 {
-   class Analyzer
+   class Parser
    {
       readonly Stack<(Pointer start, Pointer current)> loopStack;
       Pointer start;
       Pointer current;
 
-      public Analyzer()
+      public Parser()
       {
          loopStack = new();
          current = start = new();
       }
 
-      public Pointer? Parse(System.ReadOnlySpan<byte> source)
+      public Pointer? Parse(ReadOnlySpan<byte> source)
       {
          Scanner scanner = new(source);
          while (scanner.MoveNext())
