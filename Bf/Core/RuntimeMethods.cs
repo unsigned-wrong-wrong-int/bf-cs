@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace Bf.Analyzer
+namespace Bf.Core
 {
    class RuntimeMethods
    {

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using Xunit;
+using Bf.Core;
 
 namespace Bf.Tests
 {

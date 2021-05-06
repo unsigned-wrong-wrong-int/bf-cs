@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Bf
+namespace Bf.Core
 {
    enum Token : int
    {

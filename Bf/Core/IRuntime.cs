@@ -1,4 +1,4 @@
-namespace Bf
+namespace Bf.Core
 {
    interface IRuntime
    {
