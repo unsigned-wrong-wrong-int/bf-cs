@@ -30,7 +30,7 @@ namespace Bf.Analyzer
          return tag;
       }
 
-      public bool IsConst => !Overwrite && tag is null;
+      public bool IsConst => Overwrite && tag is null;
 
       public bool IsDependent => tag is not null;
 

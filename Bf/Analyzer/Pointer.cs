@@ -57,7 +57,7 @@ namespace Bf.Analyzer
          }
          if (!cells.TryGetValue(pos, out var cell))
          {
-            cell = new(isZero: IsStartOfLoop ? isInitial : pos == 0);
+            cell = new(isZero: isInitial || !IsStartOfLoop && pos == 0);
             cells.Add(pos, cell);
          }
          return cell;
@@ -298,7 +298,7 @@ namespace Bf.Analyzer
                   break;
                case CommandType.InfiniteLoop:
                   builder.InfiniteLoop(command.IsConditional);
-                  break;
+                  continue;
                case CommandType.Load:
                   builder.Load(offset, command.ShiftRight);
                   if (command.Targets is not null)

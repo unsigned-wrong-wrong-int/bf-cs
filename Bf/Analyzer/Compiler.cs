@@ -19,7 +19,7 @@ namespace Bf.Analyzer
          builder.Begin();
          var current = pointer;
          do {
-            pointer.Emit(builder);
+            current.Emit(builder);
             current = current.Next;
          } while (current is not null);
          builder.End();

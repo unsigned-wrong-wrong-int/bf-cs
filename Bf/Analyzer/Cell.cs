@@ -22,7 +22,7 @@ namespace Bf.Analyzer
       public bool IsNonZero => current.IsConst && current.Value != 0;
 
       public bool IsNoop => current.Previous is null &&
-         !current.Overwrite && current.Value != 0 && !current.IsDependent;
+         !current.Overwrite && current.Value == 0 && !current.IsDependent;
 
       public Command Write()
       {
@@ -57,7 +57,7 @@ namespace Bf.Analyzer
          {
             return null;
          }
-         return current.Value;
+         return (byte)-current.Value;
       }
 
       public Step? GetStep(int offset)
@@ -92,6 +92,7 @@ namespace Bf.Analyzer
                return Command.InfiniteLoop(isConditional: false);
             }
             multiplier *= (byte)(current.Value >> shiftRight);
+            current.Clear(overwrite: true);
             return null;
          }
          current = new(current, overwrite: true);
