@@ -54,7 +54,8 @@ namespace Bf.Analyzer
                   var (outerStart, outer) = loopStack.Pop();
                   if (outer.EndLoop(start, current))
                   {
-                     (start, current) = (outerStart, outer);
+                     // if current.Next is null, then the loop is inlined.
+                     (start, current) = (outerStart, current.Next ?? outer);
                      break;
                   }
                   if (scanner.SkipCurrentLoop())
