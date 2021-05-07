@@ -94,14 +94,19 @@ namespace Bf.Analyzer
 
       public void AddConst(int offset, byte value, bool overwrite)
       {
-         AtOffset(offset);
          if (overwrite)
          {
             // $val = value;
+            AtOffset(offset);
             il.Emit(OpCodes.Ldc_I4_S, value);
          }
          else
          {
+            if (value == 0)
+            {
+               return;
+            }
+            AtOffset(offset);
             // $val = *$ptr + value;
             il.Emit(OpCodes.Dup);
             il.Emit(OpCodes.Ldind_U1);
