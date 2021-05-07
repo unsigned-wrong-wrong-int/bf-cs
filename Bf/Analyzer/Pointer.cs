@@ -85,7 +85,7 @@ namespace Bf.Analyzer
 
       public bool BeginLoop([NotNullWhen(true)] out Pointer? loopStart)
       {
-         var cell = GetCell(offset);
+         var cell = GetCell();
          if (cell.IsZero)
          {
             loopStart = null;
@@ -210,8 +210,9 @@ namespace Bf.Analyzer
                return ToMultipliation(outer, last, loopEnd);
             }
          }
-         else if (cells.TryGetValue(offset, out last!))
+         else
          {
+            last = GetCell();
             if (last.IsNonZero)
             {
                return ToInfiniteLoop(outer, loopEnd);
