@@ -30,17 +30,15 @@ namespace Bf.Analyzer
          {
             return Command.Write(current.Value);
          }
-         var node = current;
          current = new(current, overwrite: false);
-         return Command.Write(node);
+         return Command.Write(current);
       }
 
       public Command Read()
       {
-         var node = current;
          current.Clear(overwrite: false);
          current = new(current, overwrite: false);
-         return Command.Read(node);
+         return Command.Read(current);
       }
 
       public void Merge(Cell cell)
