@@ -97,6 +97,7 @@ namespace Bf.Analyzer
 
       void AppendLoop(Pointer start, Pointer end)
       {
+         Context.Continue(offset);
          Next = start;
          end.IsEndOfLoop = true;
          end.Next = new(Context, isStartOfLoop: false);
@@ -192,7 +193,7 @@ namespace Bf.Analyzer
 
       bool OptimizeLoop(Pointer outer, Pointer loopEnd)
       {
-         Context.Close(offset, outer.Context);
+         Context.End(offset, outer.Context);
          Cell last;
          if (offset == 0)
          {

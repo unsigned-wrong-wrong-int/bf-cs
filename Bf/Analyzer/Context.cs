@@ -20,6 +20,7 @@ namespace Bf.Analyzer
       public bool IsConditional { get; set; }
       public Repetition Repetition { get; set; }
 
+      int offset;
       public PointerMove Move { get; set; }
 
       public bool PerformsIO { get; set; }
@@ -28,23 +29,21 @@ namespace Bf.Analyzer
       {
          IsConditional = !isNonZero;
          Repetition = Repetition.Ordinary;
+         offset = 0;
          Move = PointerMove.Fixed;
          PerformsIO = false;
       }
 
-      public void Close(int offset, Context outer)
+      public void Continue(int offset) => this.offset += offset;
+
+      public void End(int offset, Context outer)
       {
-         Move |= offset switch {
+         Move |= (this.offset += offset) switch
+         {
             > 0 => PointerMove.Forward,
             < 0 => PointerMove.Backward,
             _ => PointerMove.Fixed,
          };
-         // outer.Move = (outer.Move, Move) switch {
-         //    (Fixed, var move) => move,
-         //    (Forward, Fixed or Forward) => Forward,
-         //    (Backward, Fixed or Backward) => Backward,
-         //    (_, _) => Variable,
-         // };
          outer.Move |= Move;
          outer.PerformsIO |= PerformsIO;
       }
