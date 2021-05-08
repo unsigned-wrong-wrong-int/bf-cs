@@ -16,7 +16,7 @@ namespace Bf.Analyzer
          current = start = new();
       }
 
-      public Pointer? Parse(ReadOnlySpan<byte> source)
+      public Program? Parse(ReadOnlySpan<byte> source)
       {
          Scanner scanner = new(source);
          while (scanner.MoveNext())
@@ -68,7 +68,7 @@ namespace Bf.Analyzer
                   break;
             }
          }
-         return scanner.IsValid ? start : null;
+         return scanner.IsValid ? new(start) : null;
       }
    }
 }
