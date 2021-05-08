@@ -102,9 +102,10 @@ namespace Bf.Analyzer
          var node = step.Node;
          if (node.Value != 0)
          {
+            multiplier *= node.Value;
             if (command is null)
             {
-               current.Value += (byte)(multiplier * node.Value);
+               current.Value += multiplier;
             }
             else
             {

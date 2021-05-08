@@ -172,7 +172,7 @@ namespace Bf.Analyzer
          var command = outer.GetCell().Load(divisor, out var multiplier);
          if (command is not null)
          {
-            outer.commands.Enqueue((0, command));
+            outer.commands.Enqueue((outer.offset, command));
             if (command.Type == CommandType.InfiniteLoop)
             {
                return false;
