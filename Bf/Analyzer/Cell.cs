@@ -92,20 +92,25 @@ namespace Bf.Analyzer
          return Command.Load(current, shiftRight);
       }
 
-      public void Add(Step step, byte multiplier, Command? command)
+      public void Add(Step step, byte multiplier)
       {
-         var node = step.Node;
-         if (node.Value != 0)
+         multiplier *= step.Node.Value;
+         if (multiplier != 0)
          {
-            multiplier *= node.Value;
-            if (command is null)
-            {
-               current.Value += multiplier;
-            }
-            else
-            {
-               command.AddTarget(current, step.Offset, multiplier);
-            }
+            current.Value += multiplier;
+         }
+         if (step.IsConsumedInLoop)
+         {
+            current = new(current, overwrite: true);
+         }
+      }
+
+      public void Add(Step step, byte multiplier, Command command)
+      {
+         multiplier *= step.Node.Value;
+         if (multiplier != 0)
+         {
+            command.AddTarget(current, step.Offset, multiplier);
          }
          if (step.IsConsumedInLoop)
          {

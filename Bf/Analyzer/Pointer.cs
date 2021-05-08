@@ -170,17 +170,24 @@ namespace Bf.Analyzer
          }
 
          var command = outer.GetCell().Load(divisor, out var multiplier);
-         if (command is not null)
+         if (command is null)
+         {
+            foreach (var step in steps)
+            {
+               outer.GetCell(step.Offset).Add(step, multiplier);
+            }
+         }
+         else
          {
             outer.commands.Enqueue((outer.offset, command));
             if (command.Type == CommandType.InfiniteLoop)
             {
                return false;
             }
-         }
-         foreach (var step in steps)
-         {
-            outer.GetCell(step.Offset).Add(step, multiplier, command);
+            foreach (var step in steps)
+            {
+               outer.GetCell(step.Offset).Add(step, multiplier, command);
+            }
          }
          outer.EnqueueCommands(commands);
          return true;
