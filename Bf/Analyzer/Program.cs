@@ -3,19 +3,16 @@ using Bf.Core;
 
 namespace Bf.Analyzer
 {
-   class Compiler
+   class Program
    {
-      readonly Pointer pointer;
+      public Pointer Pointer { get; }
 
-      public Compiler(Pointer pointer)
-      {
-         this.pointer = pointer;
-      }
+      public Program(Pointer pointer) => Pointer = pointer;
 
       public Action Compile<R>(R runtime) where R : IRuntime
       {
          var entryPoint = runtime.CreateEntryPoint();
-         new Builder(entryPoint).Emit(pointer);
+         new Builder(entryPoint).Emit(Pointer);
          return entryPoint.Compile();
       }
    }
