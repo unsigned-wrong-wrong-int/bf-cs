@@ -96,8 +96,8 @@ namespace Bf.Analyzer
       {
          if (overwrite)
          {
-            // $val = value;
             AtOffset(offset);
+            // $val = value;
             il.Emit(OpCodes.Ldc_I4_S, value);
          }
          else
