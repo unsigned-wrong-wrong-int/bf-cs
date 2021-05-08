@@ -15,14 +15,7 @@ namespace Bf.Analyzer
       public Action Compile<R>(R runtime) where R : IRuntime
       {
          var entryPoint = runtime.CreateEntryPoint();
-         Builder builder = new(entryPoint);
-         builder.Begin();
-         var current = pointer;
-         do {
-            current.Emit(builder);
-            current = current.Next;
-         } while (current is not null);
-         builder.End();
+         new Builder(entryPoint).Emit(pointer);
          return entryPoint.Compile();
       }
    }
