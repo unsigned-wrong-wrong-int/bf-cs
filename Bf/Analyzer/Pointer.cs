@@ -137,6 +137,7 @@ namespace Bf.Analyzer
             {
                outer.AppendLoop(Next, loopEnd);
             }
+            outer.offset += offset;
             return true;
          }
          Context.Repetition = Repetition.Once;
