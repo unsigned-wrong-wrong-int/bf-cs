@@ -94,27 +94,33 @@ namespace Bf.Analyzer
 
       public void Add(Step step, byte multiplier)
       {
-         multiplier *= step.Node.Value;
+         var node = step.Node;
+         multiplier *= node.Value;
          if (multiplier != 0)
          {
             current.Value += multiplier;
          }
          if (step.IsConsumedInLoop)
          {
-            current = new(current, overwrite: true);
+            node.Clear(overwrite: false);
+            node.Previous = current;
+            current = new(node, overwrite: true);
          }
       }
 
       public void Add(Step step, byte multiplier, Command command)
       {
-         multiplier *= step.Node.Value;
+         var node = step.Node;
+         multiplier *= node.Value;
          if (multiplier != 0)
          {
             command.AddTarget(current, step.Offset, multiplier);
          }
          if (step.IsConsumedInLoop)
          {
-            current = new(current, overwrite: true);
+            node.Clear(overwrite: false);
+            node.Previous = current;
+            current = new(node, overwrite: true);
          }
       }
    }
