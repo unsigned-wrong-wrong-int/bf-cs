@@ -41,12 +41,7 @@ namespace Bf.Analyzer
          return Command.Read(current);
       }
 
-      public void Merge(Cell cell)
-      {
-         var next = cell.head;
-         next.Prepend(current);
-         current = next;
-      }
+      public void Merge(Cell cell) => current = cell.head.Prepend(current);
 
       public byte? GetDivisor()
       {

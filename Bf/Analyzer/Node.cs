@@ -50,7 +50,7 @@ namespace Bf.Analyzer
          RemoveTag();
       }
 
-      public void Prepend(Node prev)
+      public Node Prepend(Node prev)
       {
          Previous = prev.Previous;
          if (Overwrite)
@@ -62,6 +62,7 @@ namespace Bf.Analyzer
             Value += prev.Value;
             Overwrite = prev.Overwrite;
          }
+         return this;
       }
    }
 
