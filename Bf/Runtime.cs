@@ -85,10 +85,10 @@ namespace Bf
          }
       }
 
-      public void Abort(string message)
+      public void Abort(RuntimeError error)
       {
          Flush();
-         Console.Error.WriteLine($"Runtime Error: {message}");
+         Console.Error.WriteLine($"Runtime Error: {error.GetMessage()}");
       }
    }
 }

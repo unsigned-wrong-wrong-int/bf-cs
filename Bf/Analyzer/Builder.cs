@@ -60,10 +60,10 @@ namespace Bf.Analyzer
             runtime.End();
             return;
          pointerError:
-            runtime.Abort("...");
+            runtime.Abort(RuntimeError.PointerOutOfBounds);
             return;
          loopError:
-            runtime.Abort("...");
+            runtime.Abort(RuntimeError.InfiniteLoop);
             return;
          */
          il.Emit(OpCodes.Ldarg_0);
@@ -71,12 +71,12 @@ namespace Bf.Analyzer
          il.Emit(OpCodes.Ret);
          il.MarkLabel(pointerError);
          il.Emit(OpCodes.Ldarg_0);
-         il.Emit(OpCodes.Ldstr, "Pointer out of array bounds");
+         il.Emit(OpCodes.Ldc_I4_0);
          il.Emit(OpCodes.Call, runtime.Abort);
          il.Emit(OpCodes.Ret);
          il.MarkLabel(loopError);
          il.Emit(OpCodes.Ldarg_0);
-         il.Emit(OpCodes.Ldstr, "Infinite loop with no read/write");
+         il.Emit(OpCodes.Ldc_I4_1);
          il.Emit(OpCodes.Call, runtime.Abort);
          il.Emit(OpCodes.Ret);
       }

@@ -8,6 +8,6 @@ namespace Bf.Core
       byte Read();
       void Write(byte value);
 
-      void Abort(string message);
+      void Abort(RuntimeError error);
    }
 }
