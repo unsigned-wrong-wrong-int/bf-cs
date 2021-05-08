@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Bf.Core;
 
@@ -16,9 +15,9 @@ namespace Bf.Analyzer
          current = start = new();
       }
 
-      public Program? Parse(ReadOnlySpan<byte> source)
+      public Program? Parse<S>(S source) where S : ISource
       {
-         Scanner scanner = new(source);
+         Scanner scanner = new(source.GetBytes());
          while (scanner.MoveNext())
          {
             switch (scanner.Current)
@@ -72,7 +71,7 @@ namespace Bf.Analyzer
          {
             foreach (var error in errors)
             {
-               // TODO: output errors
+               source.Error(error);
             }
             return null;
          }
