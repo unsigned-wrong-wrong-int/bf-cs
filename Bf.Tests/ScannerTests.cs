@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Text;
 using System.Linq;
 using Xunit;
@@ -7,24 +6,8 @@ using Bf.Core;
 
 namespace Bf.Tests
 {
-   public sealed class ScannerTests : IDisposable
+   public sealed class ScannerTests
    {
-      readonly TextWriter consoleErr;
-      readonly StringWriter stderr;
-
-      public ScannerTests()
-      {
-         consoleErr = Console.Error;
-         stderr = new();
-         stderr.NewLine = "\n";
-         Console.SetError(stderr);
-      }
-
-      public void Dispose()
-      {
-         Console.SetError(consoleErr);
-      }
-
       [Fact]
       internal void AcceptsEmptyInput()
       {
