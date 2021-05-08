@@ -68,7 +68,15 @@ namespace Bf.Analyzer
                   break;
             }
          }
-         return scanner.IsValid ? new(start) : null;
+         if (scanner.Errors is { } errors)
+         {
+            foreach (var error in errors)
+            {
+               // TODO: output errors
+            }
+            return null;
+         }
+         return new(start);
       }
    }
 }

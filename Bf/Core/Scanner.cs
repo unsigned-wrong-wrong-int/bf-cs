@@ -26,7 +26,7 @@ namespace Bf.Core
       int column;
       readonly Stack<(int line, int column)> loopStarts;
 
-      bool error;
+      public Queue<SyntaxError>? Errors { get; private set; }
 
       public Scanner(ReadOnlySpan<byte> source)
       {
@@ -34,7 +34,7 @@ namespace Bf.Core
          current = default;
          line = column = 1;
          loopStarts = new();
-         error = false;
+         Errors = null;
       }
 
       public bool MoveNext()
@@ -100,13 +100,13 @@ namespace Bf.Core
          while (MoveNext()) { }
       }
 
-      public bool IsValid => !error;
-
-      void Error(char c, int line, int column)
+      void Error(char @char, int line, int column)
       {
-         Console.Error.WriteLine(
-            $"Syntax Error: Unmatched {c} at {line}:{column}");
-         error = true;
+         if (Errors is null)
+         {
+            Errors = new();
+         }
+         Errors.Enqueue(new(@char, line, column));
       }
    }
 }

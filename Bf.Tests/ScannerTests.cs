@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Linq;
 using Xunit;
 using Bf.Core;
 
@@ -31,9 +32,7 @@ namespace Bf.Tests
 
          Assert.False(scanner.MoveNext());
 
-         Assert.True(scanner.IsValid);
-         var error = stderr.ToString();
-         Assert.Empty(error);
+         Assert.Null(scanner.Errors);
       }
 
       [Theory]
@@ -52,9 +51,7 @@ namespace Bf.Tests
 
          Assert.False(scanner.MoveNext());
 
-         Assert.True(scanner.IsValid);
-         var error = stderr.ToString();
-         Assert.Empty(error);
+         Assert.Null(scanner.Errors);
       }
 
       [Fact]
@@ -70,9 +67,7 @@ namespace Bf.Tests
 
          Assert.False(scanner.MoveNext());
 
-         Assert.True(scanner.IsValid);
-         var error = stderr.ToString();
-         Assert.Empty(error);
+         Assert.Null(scanner.Errors);
       }
 
       [Fact]
@@ -85,9 +80,12 @@ namespace Bf.Tests
 
          Assert.False(scanner.MoveNext());
 
-         Assert.False(scanner.IsValid);
-         var error = stderr.ToString();
-         Assert.Equal("Syntax Error: Unmatched [ at 1:1\n", error);
+         Assert.NotNull(scanner.Errors);
+
+         var error = scanner.Errors!.Dequeue().Message;
+         Assert.Equal("Unmatched [ at 1:1", error);
+
+         Assert.Empty(scanner.Errors);
       }
 
       [Fact]
@@ -100,12 +98,16 @@ namespace Bf.Tests
 
          Assert.False(scanner.MoveNext());
 
-         Assert.False(scanner.IsValid);
-         var error = stderr.ToString();
-         Assert.Equal("Syntax Error: Unmatched ] at 1:1\n", error);
+         Assert.NotNull(scanner.Errors);
+
+         var error = scanner.Errors!.Dequeue().Message;
+         Assert.Equal("Unmatched ] at 1:1", error);
+
+         Assert.Empty(scanner.Errors);
       }
 
-      static void AssertTokens(ReadOnlySpan<Token> expected, bool isValid,
+      static void AssertTokens(
+         ReadOnlySpan<Token> expected, string[]? expectedErrors,
          string input)
       {
          var bytes = Encoding.UTF8.GetBytes(input);
@@ -119,7 +121,17 @@ namespace Bf.Tests
 
          Assert.False(scanner.MoveNext());
 
-         Assert.Equal(isValid, scanner.IsValid);
+         if (expectedErrors is null)
+         {
+            Assert.Null(scanner.Errors);
+         }
+         else
+         {
+            Assert.NotNull(scanner.Errors);
+
+            var errors = scanner.Errors!.Select(error => error.Message);
+            Assert.Equal(expectedErrors, errors);
+         }
       }
 
       [Fact]
@@ -132,7 +144,7 @@ namespace Bf.Tests
                Token.EndLoop,
                Token.EndLoop,
             },
-            true,
+            null,
             "[[]]"
          );
 
@@ -147,7 +159,7 @@ namespace Bf.Tests
                Token.EndLoop,
                Token.EndLoop,
             },
-            true,
+            null,
             "[[[[]]]]"
          );
 
@@ -162,7 +174,7 @@ namespace Bf.Tests
                Token.EndLoop,
                Token.EndLoop,
             },
-            true,
+            null,
             "[[][[]]]"
          );
       }
@@ -183,20 +195,15 @@ namespace Bf.Tests
                Token.EndLoop,
                Token.BeginLoop,
             },
-            false,
+            new[] {
+               "Unmatched ] at 1:1",
+               "Unmatched ] at 1:2",
+               "Unmatched ] at 1:5",
+               "Unmatched [ at 1:10",
+               "Unmatched [ at 1:7",
+               "Unmatched [ at 1:6",
+            },
             "]][]][[[]["
-         );
-
-         var error = stderr.ToString();
-         Assert.Equal(
-            @"Syntax Error: Unmatched ] at 1:1
-Syntax Error: Unmatched ] at 1:2
-Syntax Error: Unmatched ] at 1:5
-Syntax Error: Unmatched [ at 1:10
-Syntax Error: Unmatched [ at 1:7
-Syntax Error: Unmatched [ at 1:6
-",
-            error
          );
       }
    }
