@@ -57,6 +57,7 @@ namespace Bf.Analyzer
       {
          if (current.Previous is { } prev)
          {
+            /*
             if (prev.Previous is not null ||
                prev.Overwrite || prev.IsDependent ||
                current.Value != 0 || current.IsDependent)
@@ -64,6 +65,8 @@ namespace Bf.Analyzer
                return null;
             }
             return new(prev, offset, isConsumed: true);
+            */
+            return null;
          }
          else
          {
