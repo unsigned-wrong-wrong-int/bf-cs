@@ -74,7 +74,7 @@ namespace Bf.Analyzer
                   case PointerMove.Backward:
                      builder.CheckUpperBound(pointer.MaxOffset);
                      builder.BeginLoop();
-                     builder.CheckLowerBound(pointer.MaxOffset);
+                     builder.CheckLowerBound(pointer.MinOffset);
                      return;
                }
                builder.BeginLoop();
